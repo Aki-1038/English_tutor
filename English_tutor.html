@@ -1,0 +1,85 @@
+<!--
+檔案路徑: /web/English_tutor/English_tutor.html
+
+這是一個簡單的英語家教聊天應用程式，使用 HTML、CSS 和 JavaScript 建立。
+
+結構:
+- 使用 Bootstrap 進行樣式設計。
+- 包含一個聊天框和一個輸入框，使用者可以在輸入框中輸入訊息並點擊 "Send" 按鈕發送訊息。
+
+樣式:
+- #chatbox: 設定聊天框的高度、邊框、滾動條和背景顏色。
+- .user-message: 設定使用者訊息的顏色為綠色。
+- .bot-message: 設定機器人訊息的顏色為藍色。
+
+JavaScript:
+- 使用 jQuery 來處理 DOM 操作。
+- 當使用者點擊 "Send" 按鈕時，將使用者輸入的訊息儲存到 messages 陣列中，並顯示在聊天框中。
+- 使用 fetch API 將使用者訊息和上下文傳送到伺服器端的 English_tutor.php。
+- 接收伺服器回傳的機器人回覆，並顯示在聊天框中。
+- 自動滾動聊天框到最底部以顯示最新訊息。
+-->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English tutor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* 自訂樣式 */
+        #chatbox {
+            height: 400px;
+            border: 1px solid #ccc;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+        .user-message {
+            color: green; /* 使用者訊息顏色 */
+        }
+        .bot-message {
+            color: blue; /* 機器人訊息顏色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">English tutor</h1>
+        <div id="chatbox" class="mb-3"></div>
+        <div class="input-group">
+            <input type="text" id="userInput" class="form-control" placeholder="輸入你想學習英文的主題或關鍵字...例如：到市場買水果">
+            <div class="input-group-append">
+                <button id="sendButton" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script>
+        const messages = []; // 儲存對話上下文
+
+        document.getElementById('sendButton').onclick = function() {
+            const userInput = document.getElementById('userInput').value;
+            messages.push({ role: 'user', content: userInput }); // 儲存使用者訊息
+            document.getElementById('chatbox').innerHTML += `<div class="user-message"><strong>You:</strong> ${userInput}</div>`;
+            document.getElementById('userInput').value = '';
+
+            fetch('English_tutor.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput, context: messages }) // 傳送上下文
+            })
+            .then(response => response.json())
+            .then(data => {
+                const formattedReply = data.reply.split('\n').map(line => `<p>${line}</p>`).join('');
+                messages.push({ role: 'bot', content: formattedReply }); // 儲存機器人回覆
+                document.getElementById('chatbox').innerHTML += `<div class="bot-message"><strong>English tutor:</strong> ${formattedReply}</div>`;
+                document.getElementById('chatbox').scrollTop = chatbox.scrollHeight; // 滾動到最底部
+            });
+        };
+    </script>
+</body>
+</html>
